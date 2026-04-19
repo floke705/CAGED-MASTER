@@ -12,6 +12,7 @@
             text-align: center;
             padding: 20px;
             margin: 0;
+            user-select: none;
         }
         
         .top-header {
@@ -27,7 +28,7 @@
             padding-bottom: 20px;
         }
 
-        .left-panel { justify-self: start; text-align: left; display: flex; flex-direction: column; justify-content: space-between; height: 100%;}
+        .left-panel { justify-self: start; text-align: left; display: flex; flex-direction: column; justify-content: flex-start; height: 100%;}
         
         .center-panel {
             justify-self: center;
@@ -56,7 +57,7 @@
         }
         #target-note { font-size: 1.3em; color: #e74c3c; font-weight: bold; }
         
-        #message { height: 30px; font-size: 1.1em; margin-top: 10px; font-weight: bold; color: #2ecc71;}
+        #instruction { margin-top: 15px; font-size: 0.9em; color: #bdc3c7; line-height: 1.6; }
 
         .option-row { margin-bottom: 6px; display: flex; align-items: center; justify-content: flex-end; width: 100%;}
         .option-label { margin-right: 10px; color: #f39c12; font-size: 0.9em; font-weight: bold; letter-spacing: 1px; }
@@ -72,9 +73,6 @@
             background-color: #2ecc71; color: #1a1a1a;
             border-color: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
         }
-        .opt-btn.random-btn.active {
-            background-color: #9b59b6; border-color: #9b59b6; box-shadow: 0 0 8px rgba(155, 89, 182, 0.5);
-        }
         .opt-btn.view-btn.active, .opt-btn.type-btn.active {
             background-color: #3498db; border-color: #3498db; box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
         }
@@ -83,27 +81,6 @@
             border-color: #444444 !important; cursor: not-allowed !important; box-shadow: none !important;
         }
 
-        .mode-container { margin-bottom: 10px; }
-        .mode-btn {
-            background-color: #2c3e50; color: #bdc3c7;
-            border: 2px solid #34495e; padding: 8px 16px;
-            font-size: 1em; font-weight: bold; cursor: pointer;
-            border-radius: 5px; margin-right: 10px; transition: all 0.2s;
-        }
-        .mode-btn.active {
-            background-color: #f39c12; color: #1a1a1a;
-            border-color: #f39c12; box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
-        }
-
-        .action-container { margin-top: 10px; }
-        .btn-action {
-            border: none; padding: 10px 20px; font-size: 0.95em; font-weight: bold;
-            border-radius: 5px; cursor: pointer; margin-right: 10px; transition: opacity 0.2s; color: #1a1a1a;
-        }
-        .btn-action:hover { opacity: 0.8; }
-        .btn-game-refresh { background-color: #3498db; color: #ffffff;}
-        .btn-game-answer { background-color: #e74c3c; color: #ffffff;}
-
         .table-wrapper { overflow-x: auto; max-width: 100%; margin: 0 auto; margin-bottom: 30px;}
         
         table#fretboard {
@@ -111,6 +88,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.7);
             min-width: 1600px; 
             position: relative;
+            cursor: pointer;
         }
         table#fretboard th, table#fretboard td {
             border-right: 4px solid #918d86; 
@@ -154,17 +132,8 @@
             color: #000000; width: 30px; height: 30px; line-height: 30px; border-radius: 50%; text-align: center;
         }
 
-        .correct-marker, .all-mode-marker, .hint-marker { display: block !important; background-color: #2ecc71; }
-        .correct-marker.root-marker, .all-mode-marker.root-marker, .hint-marker.hint-root-marker { background-color: #f1c40f !important; }
-        .wrong-marker { display: block !important; background-color: #e74c3c !important; color: #ffffff !important; animation: wrongShake 0.4s; }
-
-        @keyframes wrongShake {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-55%, -50%) rotate(-5deg); }
-            50% { transform: translate(-45%, -50%) rotate(5deg); }
-            75% { transform: translate(-55%, -50%) rotate(-5deg); }
-            100% { transform: translate(-50%, -50%) rotate(0deg); }
-        }
+        .correct-marker, .all-mode-marker { display: block !important; background-color: #2ecc71; }
+        .correct-marker.root-marker, .all-mode-marker.root-marker { background-color: #f1c40f !important; }
 
         .connection-line {
             position: absolute; top: 50%; left: 50%; height: 10px; background-color: #000000;
@@ -292,24 +261,16 @@
 
     <div class="top-header">
         <div class="left-panel">
-            <h1>CAGED Master Protocol</h1>
-            
-            <div class="mode-container">
-                <button id="btn-study" class="mode-btn active">📖 정답 암기 모드</button>
-                <button id="btn-game" class="mode-btn">⚔️ 실전 게임 모드</button>
-            </div>
-
+            <h1>기타 지판 시뮬레이션</h1>
             <div id="target-display">
-                TARGET : <span id="target-note">-</span><br>
-                <span id="target-instruction" style="font-size: 0.6em; color: #bdc3c7;">(대기 중입니다)</span>
+                <span id="target-note">-</span>
             </div>
-            
-            <div class="action-container" id="game-actions" style="display: none;">
-                <button id="btn-game-refresh" class="btn-action btn-game-refresh">새로운 훈련 시작</button>
-                <button id="btn-game-answer" class="btn-action btn-game-answer">정답 보기 (3초)</button>
+            <div id="instruction">
+                <strong>[마우스 조작 가이드]</strong><br>
+                - <strong>클릭 & 좌우 드래그:</strong> 슬라이드 (가로 1칸 = 1프렛 이동)<br>
+                - <strong>클릭 & 상하 드래그:</strong> 벤딩 (세로 1칸 = 하프 벤딩, 2칸 = 풀 벤딩)<br>
+                - <strong>클릭 & 상하 흔들기:</strong> 속도와 폭에 따른 비브라토
             </div>
-
-            <div id="message">우측 패널에서 옵션을 선택하십시오.</div>
         </div>
 
         <div class="center-panel">
@@ -325,8 +286,7 @@
         <div class="right-panel">
             <div class="option-row" id="row-root">
                 <span class="option-label">ROOT</span>
-                <button class="opt-btn root-btn random-btn active" data-val="RANDOM">🎲 랜덤</button>
-                <button class="opt-btn root-btn" data-val="C">C</button>
+                <button class="opt-btn root-btn active" data-val="C">C</button>
                 <button class="opt-btn root-btn" data-val="D">D</button>
                 <button class="opt-btn root-btn" data-val="E">E</button>
                 <button class="opt-btn root-btn" data-val="F">F</button>
@@ -342,16 +302,14 @@
             </div>
             <div class="option-row" id="row-scale">
                 <span class="option-label">SCALE</span>
-                <button class="opt-btn scale-btn random-btn active" data-val="RANDOM">🎲 랜덤</button>
                 <button class="opt-btn scale-btn" data-val="Major Pentatonic">Maj Penta</button>
                 <button class="opt-btn scale-btn" data-val="Minor Pentatonic">min Penta</button>
-                <button class="opt-btn scale-btn" data-val="Major Scale">Major</button>
+                <button class="opt-btn scale-btn active" data-val="Major Scale">Major</button>
                 <button class="opt-btn scale-btn" data-val="Minor Scale">minor</button>
             </div>
             <div class="option-row" id="row-form">
                 <span class="option-label">FORM</span>
-                <button class="opt-btn form-btn random-btn active" data-val="RANDOM">🎲 랜덤</button>
-                <button class="opt-btn form-btn" data-val="ALL">전체 (ALL)</button>
+                <button class="opt-btn form-btn active" data-val="ALL">전체 (ALL)</button>
                 <button class="opt-btn form-btn" data-val="C">C</button>
                 <button class="opt-btn form-btn" data-val="A">A</button>
                 <button class="opt-btn form-btn" data-val="G">G</button>
@@ -384,85 +342,134 @@
         </div>
         <div class="bottom-card">
             <h3>[ 다이아토닉 3화음 (Diatonic Triads) ]</h3>
-            <div id="diatonic-chords-display">
-            </div>
+            <div id="diatonic-chords-display"></div>
         </div>
     </div>
 
     <script>
-// --- 외부 샘플 기반 사운드 엔진 (Pitch Shifting) ---
+        // --- Web Audio API 사운드 엔진 ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let guitarSampleBuffer = null;
-        const activeSources = {};
+        const activeOscillators = {};
 
-        // 1. 기준 음정 설정: 주군께서 녹음하신 E4 (3번 줄 9프렛) = MIDI 노트 64
-        const BASE_MIDI_NOTE = 64; 
+        // 개방현(0프렛) 주파수 (1번줄 E4 ~ 6번줄 E2)
+        const openStringFreqs = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41];
 
-        const openStringMidi = [64, 59, 55, 50, 45, 40]; // 1번줄(E4) ~ 6번줄(E2)
-
-        // 2. 샘플 로딩 (HTML과 같은 폴더에 업로드한 E4.mp3 연결)
-        async function loadGuitarSample() {
-            try {
-                const response = await fetch('./E4.mp3'); 
-                
-                if (!response.ok) throw new Error("샘플 파일을 찾을 수 없습니다.");
-                
-                const arrayBuffer = await response.arrayBuffer();
-                guitarSampleBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                console.log("기타 샘플 장전 완료");
-            } catch (e) {
-                console.error("오디오 샘플 로딩 실패. 파일 경로를 확인하십시오.", e);
+        function makeDistortionCurve(amount) {
+            let k = typeof amount === 'number' ? amount : 50,
+                n_samples = 44100,
+                curve = new Float32Array(n_samples),
+                deg = Math.PI / 180,
+                i = 0, x;
+            for ( ; i < n_samples; ++i ) {
+                x = i * 2 / n_samples - 1;
+                curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
             }
+            return curve;
         }
 
-        loadGuitarSample();
+        const distortion = audioCtx.createWaveShaper();
+        distortion.curve = makeDistortionCurve(400); 
+        distortion.oversample = '4x';
+
+        const cabFilter = audioCtx.createBiquadFilter();
+        cabFilter.type = 'lowpass';
+        cabFilter.frequency.value = 3500; 
+
+        distortion.connect(cabFilter);
+        cabFilter.connect(audioCtx.destination);
 
         function playGuitarNote(stringIdx, fret) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (!guitarSampleBuffer) return; // 샘플이 없으면 무음 처리
             
-            let key = `${stringIdx}-${fret}`;
-            if (activeSources[key]) stopGuitarNote(stringIdx, fret);
+            let baseFreq = openStringFreqs[stringIdx];
+            let freq = baseFreq * Math.pow(2, fret / 12);
             
-            // 클릭한 지판의 음정을 계산하여 재생 속도(Pitch) 변환
-            let targetMidiNote = openStringMidi[stringIdx] + fret;
-            let semitoneDifference = targetMidiNote - BASE_MIDI_NOTE;
-            let playbackRate = Math.pow(2, semitoneDifference / 12);
+            let osc1 = audioCtx.createOscillator();
+            let osc2 = audioCtx.createOscillator();
+            osc1.type = 'sawtooth';
+            osc2.type = 'square';
+            osc2.detune.value = 5; 
             
-            let source = audioCtx.createBufferSource();
-            source.buffer = guitarSampleBuffer;
-            source.playbackRate.value = playbackRate;
-            
-            // 서스테인 제어용 Gain 노드
             let gainNode = audioCtx.createGain();
             
-            source.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(distortion);
             
             let now = audioCtx.currentTime;
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(1.0, now + 0.01); // 빠른 어택
+            gainNode.gain.linearRampToValueAtTime(0.6, now + 0.02); 
+            gainNode.gain.exponentialRampToValueAtTime(0.3, now + 0.5); 
             
-            source.start(now);
-            activeSources[key] = { source, gainNode };
+            osc1.frequency.setValueAtTime(freq, now);
+            osc2.frequency.setValueAtTime(freq, now);
+            osc1.start(now);
+            osc2.start(now);
+            
+            let key = `${stringIdx}-${fret}`;
+            activeOscillators[key] = { osc1, osc2, gainNode };
         }
 
         function stopGuitarNote(stringIdx, fret) {
             let key = `${stringIdx}-${fret}`;
-            if (activeSources[key]) {
+            if (activeOscillators[key]) {
                 let now = audioCtx.currentTime;
-                let { source, gainNode } = activeSources[key];
+                let { osc1, osc2, gainNode } = activeOscillators[key];
                 
-                // 마우스를 뗄 때 자연스러운 팜 뮤트(Palm Mute) 느낌으로 감쇠
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15); 
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15); 
                 
-                source.stop(now + 0.2);
-                delete activeSources[key];
+                osc1.stop(now + 0.15);
+                osc2.stop(now + 0.15);
+                delete activeOscillators[key];
             }
         }
-        // -----------------------------
+
+        // --- 마우스 드래그 상호작용 (벤딩, 슬라이드, 비브라토) ---
+        let activeDrag = null;
+
+        window.addEventListener('mousemove', function(e) {
+            if(!activeDrag) return;
+
+            let deltaX = e.clientX - activeDrag.startX;
+            // 위아래 드래그: 절대값으로 피치 상승(벤딩)을 시뮬레이션
+            let deltaY = Math.abs(activeDrag.startY - e.clientY); 
+
+            // 1. 슬라이드 (좌우 픽셀 이동을 프렛 단위로 변환, 1칸 너비 약 65px)
+            let fretOffset = Math.round(deltaX / 65);
+            let newFret = activeDrag.startFret + fretOffset;
+            if(newFret < 0) newFret = 0;
+            if(newFret > 24) newFret = 24;
+
+            // 2. 벤딩 & 비브라토 (상하 픽셀 이동을 detune(Cents)으로 변환, 1칸 높이 약 50px = 100 Cents)
+            let bendCents = (deltaY / 50) * 100;
+            if(bendCents > 300) bendCents = 300; // 최대 1.5음(300 Cents) 벤딩 제한
+
+            // 사운드 적용
+            let key = `${activeDrag.stringIdx}-${activeDrag.startFret}`;
+            if(activeOscillators[key]) {
+                let now = audioCtx.currentTime;
+                let { osc1, osc2 } = activeOscillators[key];
+                
+                // 슬라이드: 기본 주파수 변경
+                let baseFreq = openStringFreqs[activeDrag.stringIdx] * Math.pow(2, newFret / 12);
+                osc1.frequency.setTargetAtTime(baseFreq, now, 0.05);
+                osc2.frequency.setTargetAtTime(baseFreq, now, 0.05);
+
+                // 벤딩 & 비브라토: detune 값 변경
+                osc1.detune.setTargetAtTime(bendCents, now, 0.02);
+                osc2.detune.setTargetAtTime(bendCents + 5, now, 0.02);
+            }
+        });
+
+        window.addEventListener('mouseup', function(e) {
+            if(e.button !== 0) return;
+            if(activeDrag) {
+                stopGuitarNote(activeDrag.stringIdx, activeDrag.startFret);
+                activeDrag = null;
+            }
+        });
         // -----------------------------
 
         const chromaticScale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -477,15 +484,6 @@
             }
             stringsNotes.push(stringArray);
         }
-
-        const stringBasePitches = [
-            { note: "E", octave: 4 }, 
-            { note: "B", octave: 3 }, 
-            { note: "G", octave: 3 }, 
-            { note: "D", octave: 3 }, 
-            { note: "A", octave: 2 }, 
-            { note: "E", octave: 2 }  
-        ];
 
         const octaveColorArray = [
             "rgba(243, 156, 18, 0.5)", // Orange
@@ -601,15 +599,11 @@
             }
         };
 
-        const rootsPool = ["C", "D", "E", "F", "G", "A", "B"];
-        const scalesPool = ["Major Pentatonic", "Minor Pentatonic", "Major Scale", "Minor Scale"];
-        const formsPool = ["ALL", "C", "A", "G", "E", "D"]; 
-
-        let isGameMode = false;
-        let selectedRootOpt = 'RANDOM';
+        // 초기 설정값 업데이트
+        let selectedRootOpt = 'C';
         let selectedAccidentalOpt = ''; 
-        let selectedScaleOpt = 'RANDOM';
-        let selectedFormOpt = 'RANDOM';
+        let selectedScaleOpt = 'Major Scale';
+        let selectedFormOpt = 'ALL';
         let selectedTypeOpt = 'SCALE'; 
         let selectedViewOpt = 'INTERVAL'; 
         let isFormHighlighterOn = false; 
@@ -619,15 +613,9 @@
         let currentScale = "";
         let currentForm = "";
         let requiredCells = []; 
-        let foundCount = 0; 
-        let requiredTotal = 0; 
-        let hintTimerId = null;
 
         const fretboardEl = document.getElementById("fretboard");
         const targetNoteEl = document.getElementById("target-note");
-        const messageEl = document.getElementById("message");
-        const instructionEl = document.getElementById("target-instruction");
-        const gameActionsEl = document.getElementById("game-actions");
         const keySigDisplayEl = document.getElementById("key-sig-display");
         const relativeKeyDisplayEl = document.getElementById("relative-key-display");
         const notesListDisplayEl = document.getElementById("notes-list-display");
@@ -798,7 +786,7 @@
             const formCBtn = document.querySelector('.form-btn[data-val="C"]');
             const formGBtn = document.querySelector('.form-btn[data-val="G"]');
 
-            if (selectedFormOpt === 'ALL' || selectedFormOpt === 'RANDOM') {
+            if (selectedFormOpt === 'ALL') {
                 chordBtn.classList.add('disabled-btn');
                 if (selectedTypeOpt === 'CHORD') {
                     selectedTypeOpt = 'SCALE';
@@ -879,24 +867,6 @@
             applyFormHighlighter();   
         }
 
-        document.getElementById("btn-study").addEventListener("click", function() {
-            isGameMode = false;
-            if (hintTimerId) clearTimeout(hintTimerId);
-            this.classList.add("active");
-            document.getElementById("btn-game").classList.remove("active");
-            gameActionsEl.style.display = "none";
-            updateAndShow();
-        });
-
-        document.getElementById("btn-game").addEventListener("click", function() {
-            isGameMode = true;
-            if (hintTimerId) clearTimeout(hintTimerId);
-            this.classList.add("active");
-            document.getElementById("btn-study").classList.remove("active");
-            gameActionsEl.style.display = "block";
-            nextQuestion(); 
-        });
-
         document.getElementById("btn-form-hl").addEventListener("click", function() {
             if (this.classList.contains("disabled-btn")) return; 
             isFormHighlighterOn = !isFormHighlighterOn;
@@ -923,18 +893,10 @@
                     stateSetter(btn.dataset.val);
                     updateOptionsUI();
                     
-                    if (!isGameMode) {
-                        if(btnClass === 'view-btn') {
-                            refreshViewModeOnly();
-                        } else {
-                            updateAndShow();
-                        }
+                    if(btnClass === 'view-btn') {
+                        refreshViewModeOnly();
                     } else {
-                        if(btnClass === 'view-btn') {
-                            refreshViewModeOnly();
-                        } else {
-                            nextQuestion();
-                        }
+                        updateAndShow();
                     }
                 });
             });
@@ -946,48 +908,6 @@
         setupOptionButtons('form-btn', val => selectedFormOpt = val);
         setupOptionButtons('type-btn', val => selectedTypeOpt = val);
         setupOptionButtons('view-btn', val => selectedViewOpt = val);
-
-        document.getElementById("btn-game-refresh").addEventListener("click", nextQuestion);
-
-        document.getElementById("btn-game-answer").addEventListener("click", function() {
-            if (!isGameMode || requiredTotal === 0 || foundCount >= requiredTotal) return;
-            if (hintTimerId) clearTimeout(hintTimerId);
-            
-            let rootForFretboard = flatToSharp[currentRoot] || currentRoot;
-
-            requiredCells.forEach(cellId => {
-                let [s, f] = cellId.split('-');
-                let cell = document.querySelector(`td[data-s='${s}'][data-f='${f}']`);
-                let noteMarker = cell.querySelector(".note-marker");
-                
-                if (!noteMarker.classList.contains("correct-marker")) {
-                    let clickedNote = cell.dataset.note;
-                    let rootIndex = chromaticScale.indexOf(rootForFretboard);
-                    let noteIndex = chromaticScale.indexOf(clickedNote);
-                    let diff = (noteIndex - rootIndex + 12) % 12;
-                    let intervalName = scaleIntervals[currentScale][diff] || clickedNote;
-
-                    noteMarker.dataset.interval = intervalName; 
-                    noteMarker.innerText = getMarkerText(intervalName);
-                    noteMarker.classList.add("hint-marker"); 
-                    if (intervalName === "1") {
-                        noteMarker.classList.add("hint-root-marker");
-                    }
-                }
-            });
-
-            messageEl.style.color = "#e74c3c";
-            messageEl.innerText = `정답을 3초간 개방합니다. 집중하십시오!`;
-
-            hintTimerId = setTimeout(() => {
-                document.querySelectorAll(".hint-marker").forEach(marker => {
-                    marker.classList.remove("hint-marker", "hint-root-marker");
-                    marker.innerText = ""; 
-                });
-                messageEl.style.color = "#f39c12";
-                messageEl.innerText = `⚔️ 타겟을 찾아 지판을 클릭하십시오. (성공: ${foundCount}/${requiredTotal})`;
-            }, 3000);
-        });
 
         function initFretboard() {
             let headerRow = "<tr><th>줄 \\ 프렛</th>";
@@ -1040,21 +960,17 @@
                     noteMarker.className = "note-marker";
                     cell.appendChild(noteMarker);
 
-                    // 마우스 왼쪽 버튼 클릭 시 사운드 재생 및 정답 체크
+                    // 클릭 시 사운드 재생 시작 (드래그 시작점 등록)
                     cell.addEventListener("mousedown", function(e) {
                         if(e.button !== 0) return; // 좌클릭만 허용
-                        checkAnswer(this);
+                        
+                        activeDrag = {
+                            startX: e.clientX,
+                            startY: e.clientY,
+                            stringIdx: s,
+                            startFret: f
+                        };
                         playGuitarNote(s, f);
-                    });
-                    
-                    // 마우스 버튼을 떼거나 셀에서 벗어나면 서스테인 종료
-                    cell.addEventListener("mouseup", function(e) {
-                        if(e.button !== 0) return;
-                        stopGuitarNote(s, f);
-                    });
-                    
-                    cell.addEventListener("mouseleave", function() {
-                        stopGuitarNote(s, f);
                     });
 
                     row.appendChild(cell);
@@ -1085,7 +1001,7 @@
         }
 
         function getActualRoot() {
-            let baseRoot = selectedRootOpt === "RANDOM" ? rootsPool[Math.floor(Math.random() * rootsPool.length)] : selectedRootOpt;
+            let baseRoot = selectedRootOpt;
             let combined = baseRoot + selectedAccidentalOpt;
             const normalize = {
                 "B#": "C", "E#": "F", "Cb": "B", "Fb": "E",
@@ -1114,7 +1030,6 @@
                         }
                     }
                 }
-                requiredTotal = requiredCells.length;
                 return;
             }
 
@@ -1135,7 +1050,6 @@
                         }
                     }
                 }
-                requiredTotal = requiredCells.length;
                 return;
             }
 
@@ -1168,8 +1082,6 @@
                     }
                 }
             });
-
-            requiredTotal = requiredCells.length;
         }
 
         function applyOctaveHighlighter() {
@@ -1456,8 +1368,8 @@
             clearBoard();
 
             currentRoot = getActualRoot();
-            currentScale = selectedScaleOpt === "RANDOM" ? scalesPool[Math.floor(Math.random() * scalesPool.length)] : selectedScaleOpt;
-            currentForm = selectedFormOpt === "RANDOM" ? formsPool[Math.floor(Math.random() * formsPool.length)] : selectedFormOpt;
+            currentScale = selectedScaleOpt;
+            currentForm = selectedFormOpt;
             
             if (selectedTypeOpt === "CHORD" && currentScale.includes("Minor") && (currentForm === "C" || currentForm === "G")) {
                 currentScale = currentScale.replace("Minor", "Major");
@@ -1485,115 +1397,9 @@
             }
 
             updateBottomPanels(); 
-
-            instructionEl.innerText = `(해당 영역의 정답이 실시간 렌더링되었습니다)`;
-            messageEl.style.color = "#2ecc71";
-            messageEl.innerText = `📖 지판의 구조를 눈으로 파악하십시오.`;
-        }
-
-        function nextQuestion() {
-            if (hintTimerId) clearTimeout(hintTimerId);
-            clearBoard();
-            foundCount = 0;
-            
-            currentRoot = getActualRoot();
-            currentScale = selectedScaleOpt === "RANDOM" ? scalesPool[Math.floor(Math.random() * scalesPool.length)] : selectedScaleOpt;
-            currentForm = selectedFormOpt === "RANDOM" ? formsPool[Math.floor(Math.random() * formsPool.length)] : selectedFormOpt;
-            
-            if (selectedTypeOpt === "CHORD" && currentScale.includes("Minor") && (currentForm === "C" || currentForm === "G")) {
-                currentScale = currentScale.replace("Minor", "Major");
-            }
-
-            updateHighlighterBtnUI(); 
-
-            targetNoteEl.innerText = currentForm === "ALL" ? `${currentRoot} ${currentScale}` : `${currentForm}폼의 ${currentRoot} ${currentScale}`;
-            if(selectedTypeOpt === "CHORD") {
-                let baseType = currentScale.includes("Major") ? "Major" : "Minor";
-                targetNoteEl.innerText = `${currentForm} ${baseType} Code Shape (${currentRoot})`;
-            }
-
-            updateKeyAndNotesDisplay();
-            calculateTargetCells();
-            
-            applyOctaveHighlighter(); 
-            applyFormHighlighter();   
-
-            updateBottomPanels(); 
-
-            instructionEl.innerText = `(지판에 존재하는 타겟 총 ${requiredTotal}개를 모두 찾으십시오)`;
-            messageEl.style.color = "#f39c12";
-            messageEl.innerText = `⚔️ 타겟을 찾아 지판을 타격(클릭)하십시오.`;
-        }
-
-        function checkAnswer(clickedCell) {
-            if (!isGameMode) return; 
-            if (foundCount >= requiredTotal) return;
-
-            const noteMarker = clickedCell.querySelector(".note-marker");
-            if (noteMarker.classList.contains("correct-marker") || noteMarker.classList.contains("hint-marker")) {
-                if (noteMarker.classList.contains("hint-marker")) {
-                    noteMarker.classList.remove("hint-marker", "hint-root-marker");
-                    noteMarker.classList.add("correct-marker");
-                    if (noteMarker.dataset.interval === "1") noteMarker.classList.add("root-marker");
-                    foundCount++;
-                } else {
-                    return; 
-                }
-            } else {
-                let s = clickedCell.dataset.s;
-                let f = clickedCell.dataset.f;
-                let cellId = `${s}-${f}`;
-                let clickedNote = clickedCell.dataset.note; 
-                let rootForFretboard = flatToSharp[currentRoot] || currentRoot;
-
-                if (requiredCells.includes(cellId)) {
-                    let rootIndex = chromaticScale.indexOf(rootForFretboard);
-                    let noteIndex = chromaticScale.indexOf(clickedNote);
-                    let diff = (noteIndex - rootIndex + 12) % 12;
-                    let intervalName = scaleIntervals[currentScale][diff] || clickedNote;
-
-                    noteMarker.dataset.interval = intervalName;
-                    noteMarker.innerText = getMarkerText(intervalName);
-                    noteMarker.classList.add("correct-marker"); 
-                    
-                    if (intervalName === "1") {
-                        noteMarker.classList.add("root-marker");
-                    }
-
-                    if (noteMarker.classList.contains("wrong-marker")) {
-                        noteMarker.classList.remove("wrong-marker");
-                    }
-
-                    foundCount++;
-                } 
-                else {
-                    noteMarker.innerText = getMarkerText(clickedNote); 
-                    
-                    noteMarker.classList.remove("wrong-marker"); 
-                    void noteMarker.offsetWidth; 
-                    noteMarker.classList.add("wrong-marker"); 
-
-                    messageEl.style.color = "#e74c3c";
-                    messageEl.innerText = `오답입니다! 그곳은 온전한 형태의 타겟이 아닙니다. (성공: ${foundCount}/${requiredTotal})`;
-                    return; 
-                }
-            }
-
-            if (foundCount === requiredTotal) {
-                messageEl.style.color = "#2ecc71";
-                messageEl.innerText = `훌륭하십니다! 모든 타겟을 찾으셨습니다! 다음 훈련을 위해 '새로운 훈련 시작'을 누르십시오.`;
-            } else {
-                messageEl.style.color = "#f1c40f";
-                messageEl.innerText = `정확합니다! 찾아낸 타겟: ${foundCount} / ${requiredTotal}`;
-            }
         }
 
         initFretboard(); 
-        
-        isGameMode = false;
-        document.getElementById("btn-study").classList.add("active");
-        document.getElementById("btn-game").classList.remove("active");
-        gameActionsEl.style.display = "none";
         updateOptionsUI();
         updateAndShow(); 
     </script>
