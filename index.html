@@ -258,7 +258,6 @@
             gap: 20px;
         }
 
-        /* 변경된 부분: 수직 스태킹(Vertical Stacking)을 위한 CSS 적용 */
         .diatonic-notes-top { 
             font-size: 0.95em; 
             color: #bdc3c7; 
@@ -266,7 +265,7 @@
             letter-spacing: 1px; 
             display: flex;
             flex-direction: column;
-            gap: 4px; /* 구성음 사이의 세로 여백 */
+            gap: 4px;
         }
 
         .diatonic-card {
@@ -413,13 +412,13 @@
             { note: "E", octave: 2 }  
         ];
 
-        const octaveColors = {
-            2: "rgba(243, 156, 18, 0.5)", 
-            3: "rgba(52, 152, 219, 0.5)", 
-            4: "rgba(46, 204, 113, 0.5)", 
-            5: "rgba(155, 89, 182, 0.5)", 
-            6: "rgba(233, 30, 99, 0.5)"   
-        };
+        const octaveColorArray = [
+            "rgba(243, 156, 18, 0.5)", // Orange
+            "rgba(52, 152, 219, 0.5)", // Blue
+            "rgba(46, 204, 113, 0.5)", // Green
+            "rgba(155, 89, 182, 0.5)", // Purple
+            "rgba(233, 30, 99, 0.5)"   // Pink
+        ];
 
         const scaleIntervals = {
             "Major Pentatonic": { 0: "1", 2: "2", 4: "3", 7: "5", 9: "6" },
@@ -646,7 +645,6 @@
                     let thirdNote = spelled[(i + 2) % 7];
                     let fifthNote = spelled[(i + 4) % 7];
                     
-                    // 변경된 부분: 5도, 3도, 근음 순으로 각각 <div>로 감싸 수직으로 정렬시킴
                     let notesTop = document.createElement("div");
                     notesTop.className = "diatonic-notes-top";
                     notesTop.innerHTML = `
@@ -672,18 +670,14 @@
             }
         }
 
-        function getOctave(stringIdx, fret) {
-            let base = stringBasePitches[stringIdx];
-            let startIndex = chromaticScale.indexOf(base.note);
-            let currentOctave = base.octave;
-            
-            for (let i = 1; i <= fret; i++) {
-                let nextIndex = (startIndex + i) % 12;
-                if (chromaticScale[nextIndex] === "C") {
-                    currentOctave++;
-                }
-            }
-            return currentOctave;
+        function getRelativeOctaveColor(stringIdx, fret, rootNote) {
+            const stringBaseSemitones = [24, 19, 15, 10, 5, 0];
+            const rootOffsetFromE = (chromaticScale.indexOf(rootNote) - chromaticScale.indexOf("E") + 12) % 12;
+            let P = (stringBaseSemitones[stringIdx] + fret) - rootOffsetFromE;
+            let relativeOctave = Math.floor(P / 12);
+            let colorIndex = (relativeOctave + 1) % octaveColorArray.length;
+            if (colorIndex < 0) colorIndex += octaveColorArray.length;
+            return octaveColorArray[colorIndex];
         }
 
         function updateKeyAndNotesDisplay() {
@@ -1091,15 +1085,13 @@
 
         function applyOctaveHighlighter() {
             if (!isOctaveHighlighterOn || selectedTypeOpt === 'CHORD') return;
-
+            let rootForFretboard = flatToSharp[currentRoot] || currentRoot;
             for (let s = 0; s < 6; s++) {
                 for (let f = 0; f <= 24; f++) {
                     let cell = document.querySelector(`td[data-s='${s}'][data-f='${f}']`);
                     if (cell && !cell.classList.contains("string-name")) {
-                        let octave = getOctave(s, f);
-                        if (octaveColors[octave]) {
-                            cell.style.backgroundColor = octaveColors[octave];
-                        }
+                        let color = getRelativeOctaveColor(s, f, rootForFretboard);
+                        cell.style.backgroundColor = color;
                     }
                 }
             }
