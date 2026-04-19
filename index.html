@@ -390,6 +390,81 @@
     </div>
 
     <script>
+// --- 외부 샘플 기반 사운드 엔진 (Pitch Shifting) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let guitarSampleBuffer = null;
+        const activeSources = {};
+
+        // 1. 기준 음정 설정: 주군께서 녹음하신 E4 (3번 줄 9프렛) = MIDI 노트 64
+        const BASE_MIDI_NOTE = 64; 
+
+        const openStringMidi = [64, 59, 55, 50, 45, 40]; // 1번줄(E4) ~ 6번줄(E2)
+
+        // 2. 샘플 로딩 (HTML과 같은 폴더에 업로드한 E4.mp3 연결)
+        async function loadGuitarSample() {
+            try {
+                const response = await fetch('./E4.mp3'); 
+                
+                if (!response.ok) throw new Error("샘플 파일을 찾을 수 없습니다.");
+                
+                const arrayBuffer = await response.arrayBuffer();
+                guitarSampleBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                console.log("기타 샘플 장전 완료");
+            } catch (e) {
+                console.error("오디오 샘플 로딩 실패. 파일 경로를 확인하십시오.", e);
+            }
+        }
+
+        loadGuitarSample();
+
+        function playGuitarNote(stringIdx, fret) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!guitarSampleBuffer) return; // 샘플이 없으면 무음 처리
+            
+            let key = `${stringIdx}-${fret}`;
+            if (activeSources[key]) stopGuitarNote(stringIdx, fret);
+            
+            // 클릭한 지판의 음정을 계산하여 재생 속도(Pitch) 변환
+            let targetMidiNote = openStringMidi[stringIdx] + fret;
+            let semitoneDifference = targetMidiNote - BASE_MIDI_NOTE;
+            let playbackRate = Math.pow(2, semitoneDifference / 12);
+            
+            let source = audioCtx.createBufferSource();
+            source.buffer = guitarSampleBuffer;
+            source.playbackRate.value = playbackRate;
+            
+            // 서스테인 제어용 Gain 노드
+            let gainNode = audioCtx.createGain();
+            
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            let now = audioCtx.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(1.0, now + 0.01); // 빠른 어택
+            
+            source.start(now);
+            activeSources[key] = { source, gainNode };
+        }
+
+        function stopGuitarNote(stringIdx, fret) {
+            let key = `${stringIdx}-${fret}`;
+            if (activeSources[key]) {
+                let now = audioCtx.currentTime;
+                let { source, gainNode } = activeSources[key];
+                
+                // 마우스를 뗄 때 자연스러운 팜 뮤트(Palm Mute) 느낌으로 감쇠
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15); 
+                
+                source.stop(now + 0.2);
+                delete activeSources[key];
+            }
+        }
+        // -----------------------------
+        // -----------------------------
+
         const chromaticScale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         const openStrings = ["E", "B", "G", "D", "A", "E"];
         
@@ -965,9 +1040,23 @@
                     noteMarker.className = "note-marker";
                     cell.appendChild(noteMarker);
 
-                    cell.addEventListener("click", function() {
+                    // 마우스 왼쪽 버튼 클릭 시 사운드 재생 및 정답 체크
+                    cell.addEventListener("mousedown", function(e) {
+                        if(e.button !== 0) return; // 좌클릭만 허용
                         checkAnswer(this);
+                        playGuitarNote(s, f);
                     });
+                    
+                    // 마우스 버튼을 떼거나 셀에서 벗어나면 서스테인 종료
+                    cell.addEventListener("mouseup", function(e) {
+                        if(e.button !== 0) return;
+                        stopGuitarNote(s, f);
+                    });
+                    
+                    cell.addEventListener("mouseleave", function() {
+                        stopGuitarNote(s, f);
+                    });
+
                     row.appendChild(cell);
                 }
                 fretboardEl.appendChild(row);
