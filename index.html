@@ -73,7 +73,7 @@
             background-color: #2ecc71; color: #1a1a1a;
             border-color: #2ecc71; box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
         }
-        .opt-btn.view-btn.active, .opt-btn.type-btn.active {
+        .opt-btn.view-btn.active, .opt-btn.type-btn.active, .opt-btn.degree-btn.active {
             background-color: #3498db; border-color: #3498db; box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
         }
         .disabled-btn {
@@ -321,6 +321,17 @@
                 <button class="opt-btn type-btn active" data-val="SCALE">스케일 (Scale)</button>
                 <button class="opt-btn type-btn disabled-btn" id="btn-type-chord" data-val="CHORD">코드 폼 (Chord)</button>
             </div>
+            <div class="option-row" id="row-degree">
+                <span class="option-label">DEGREE</span>
+                <button class="opt-btn degree-btn active" data-val="ALL">ALL</button>
+                <button class="opt-btn degree-btn" data-val="1">1</button>
+                <button class="opt-btn degree-btn" data-val="2">2</button>
+                <button class="opt-btn degree-btn" data-val="3">3</button>
+                <button class="opt-btn degree-btn" data-val="4">4</button>
+                <button class="opt-btn degree-btn" data-val="5">5</button>
+                <button class="opt-btn degree-btn" data-val="6">6</button>
+                <button class="opt-btn degree-btn" data-val="7">7</button>
+            </div>
             <div class="option-row" id="row-view">
                 <span class="option-label">VIEW</span>
                 <button class="opt-btn view-btn active" data-val="INTERVAL">1, 2, 3</button>
@@ -433,31 +444,25 @@
             if(!activeDrag) return;
 
             let deltaX = e.clientX - activeDrag.startX;
-            // 위아래 드래그: 절대값으로 피치 상승(벤딩)을 시뮬레이션
             let deltaY = Math.abs(activeDrag.startY - e.clientY); 
 
-            // 1. 슬라이드 (좌우 픽셀 이동을 프렛 단위로 변환, 1칸 너비 약 65px)
             let fretOffset = Math.round(deltaX / 65);
             let newFret = activeDrag.startFret + fretOffset;
             if(newFret < 0) newFret = 0;
             if(newFret > 24) newFret = 24;
 
-            // 2. 벤딩 & 비브라토 (상하 픽셀 이동을 detune(Cents)으로 변환, 1칸 높이 약 50px = 100 Cents)
             let bendCents = (deltaY / 50) * 100;
-            if(bendCents > 300) bendCents = 300; // 최대 1.5음(300 Cents) 벤딩 제한
+            if(bendCents > 300) bendCents = 300; 
 
-            // 사운드 적용
             let key = `${activeDrag.stringIdx}-${activeDrag.startFret}`;
             if(activeOscillators[key]) {
                 let now = audioCtx.currentTime;
                 let { osc1, osc2 } = activeOscillators[key];
                 
-                // 슬라이드: 기본 주파수 변경
                 let baseFreq = openStringFreqs[activeDrag.stringIdx] * Math.pow(2, newFret / 12);
                 osc1.frequency.setTargetAtTime(baseFreq, now, 0.05);
                 osc2.frequency.setTargetAtTime(baseFreq, now, 0.05);
 
-                // 벤딩 & 비브라토: detune 값 변경
                 osc1.detune.setTargetAtTime(bendCents, now, 0.02);
                 osc2.detune.setTargetAtTime(bendCents + 5, now, 0.02);
             }
@@ -605,6 +610,7 @@
         let selectedScaleOpt = 'Major Scale';
         let selectedFormOpt = 'ALL';
         let selectedTypeOpt = 'SCALE'; 
+        let selectedDegreeOpt = 'ALL'; // 추가된 도수 필터 옵션
         let selectedViewOpt = 'INTERVAL'; 
         let isFormHighlighterOn = false; 
         let isOctaveHighlighterOn = false;
@@ -907,6 +913,7 @@
         setupOptionButtons('scale-btn', val => selectedScaleOpt = val);
         setupOptionButtons('form-btn', val => selectedFormOpt = val);
         setupOptionButtons('type-btn', val => selectedTypeOpt = val);
+        setupOptionButtons('degree-btn', val => selectedDegreeOpt = val);
         setupOptionButtons('view-btn', val => selectedViewOpt = val);
 
         function initFretboard() {
@@ -960,9 +967,8 @@
                     noteMarker.className = "note-marker";
                     cell.appendChild(noteMarker);
 
-                    // 클릭 시 사운드 재생 시작 (드래그 시작점 등록)
                     cell.addEventListener("mousedown", function(e) {
-                        if(e.button !== 0) return; // 좌클릭만 허용
+                        if(e.button !== 0) return; 
                         
                         activeDrag = {
                             startX: e.clientX,
@@ -1218,17 +1224,22 @@
                         let diff = (noteIndex - rootIndex + 12) % 12;
                         let intervalName = scaleIntervals[currentScale][diff] || clickedNote;
 
-                        noteMarker.dataset.interval = intervalName;
-                        noteMarker.innerText = getMarkerText(intervalName);
-                        
-                        if (isPentatonic && selectedTypeOpt !== "CHORD") {
-                            noteMarker.classList.add("all-mode-marker"); 
-                        } else {
-                            noteMarker.classList.add("correct-marker"); 
-                        }
-                        
-                        if (intervalName === "1") {
-                            noteMarker.classList.add("root-marker");
+                        // 선택된 음정 검증 (ALL이거나 숫자가 포함되어 있는지 확인)
+                        let isMatch = selectedDegreeOpt === "ALL" || intervalName.includes(selectedDegreeOpt);
+
+                        if (isMatch) {
+                            noteMarker.dataset.interval = intervalName;
+                            noteMarker.innerText = getMarkerText(intervalName);
+                            
+                            if (isPentatonic && selectedTypeOpt !== "CHORD") {
+                                noteMarker.classList.add("all-mode-marker"); 
+                            } else {
+                                noteMarker.classList.add("correct-marker"); 
+                            }
+                            
+                            if (intervalName === "1") {
+                                noteMarker.classList.add("root-marker");
+                            }
                         }
                     }
                 }
@@ -1251,16 +1262,21 @@
                         let noteMarker = cell.querySelector(".note-marker");
                         let intervalName = scaleIntervals[currentScale][diff] || clickedNote;
 
-                        noteMarker.dataset.interval = intervalName;
-                        noteMarker.innerText = getMarkerText(intervalName);
-                        
-                        if (isPentatonic) {
-                            noteMarker.classList.add("all-mode-marker"); 
-                        } else {
-                            noteMarker.classList.add("correct-marker"); 
-                        }
-                        if (intervalName === "1") {
-                            noteMarker.classList.add("root-marker");
+                        // 선택된 음정 검증
+                        let isMatch = selectedDegreeOpt === "ALL" || intervalName.includes(selectedDegreeOpt);
+
+                        if (isMatch) {
+                            noteMarker.dataset.interval = intervalName;
+                            noteMarker.innerText = getMarkerText(intervalName);
+                            
+                            if (isPentatonic) {
+                                noteMarker.classList.add("all-mode-marker"); 
+                            } else {
+                                noteMarker.classList.add("correct-marker"); 
+                            }
+                            if (intervalName === "1") {
+                                noteMarker.classList.add("root-marker");
+                            }
                         }
                     }
                 }
