@@ -319,7 +319,15 @@
             <div class="option-row" id="row-type">
                 <span class="option-label">TYPE</span>
                 <button class="opt-btn type-btn active" data-val="SCALE">스케일 (Scale)</button>
-                <button class="opt-btn type-btn disabled-btn" id="btn-type-chord" data-val="CHORD">코드 폼 (Chord)</button>
+                <button class="opt-btn type-btn" id="btn-type-chord" data-val="CHORD">코드 폼 (Chord)</button>
+            </div>
+            <div class="option-row" id="row-chord-quality" style="display: none;">
+                <span class="option-label">CHORD</span>
+                <button class="opt-btn chord-quality-btn active" data-val="Major">Major</button>
+                <button class="opt-btn chord-quality-btn" data-val="Major7">Major7</button>
+                <button class="opt-btn chord-quality-btn" data-val="7">7</button>
+                <button class="opt-btn chord-quality-btn" data-val="minor">minor</button>
+                <button class="opt-btn chord-quality-btn" data-val="minor7">minor7</button>
             </div>
             <div class="option-row" id="row-degree">
                 <span class="option-label">DEGREE</span>
@@ -604,12 +612,101 @@
             }
         };
 
+
+        const movableChordShapes = {
+            "E": {
+                "Major": {
+                    rootString: 5,
+                    dots: {5: 0, 4: 2, 3: 2, 2: 1, 1: 0, 0: 0},
+                    intervals: {5: "1", 4: "5", 3: "1", 2: "3", 1: "5", 0: "1"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4, 5] }
+                },
+                "Major7": {
+                    rootString: 5,
+                    dots: {5: 0, 4: 2, 3: 1, 2: 1, 1: 0, 0: 0},
+                    intervals: {5: "1", 4: "5", 3: "7", 2: "3", 1: "5", 0: "1"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4, 5] }
+                },
+                "7": {
+                    rootString: 5,
+                    dots: {5: 0, 4: 2, 3: 0, 2: 1, 1: 0, 0: 0},
+                    intervals: {5: "1", 4: "5", 3: "♭7", 2: "3", 1: "5", 0: "1"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4, 5] }
+                },
+                "minor": {
+                    rootString: 5,
+                    dots: {5: 0, 4: 2, 3: 2, 2: 0, 1: 0, 0: 0},
+                    intervals: {5: "1", 4: "5", 3: "1", 2: "♭3", 1: "5", 0: "1"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4, 5] }
+                },
+                "minor7": {
+                    rootString: 5,
+                    dots: {5: 0, 4: 2, 3: 0, 2: 0, 1: 0, 0: 0},
+                    intervals: {5: "1", 4: "5", 3: "♭7", 2: "♭3", 1: "5", 0: "1"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4, 5] }
+                }
+            },
+            "A": {
+                "Major": {
+                    rootString: 4,
+                    dots: {4: 0, 3: 2, 2: 2, 1: 2, 0: 0},
+                    intervals: {4: "1", 3: "5", 2: "1", 1: "3", 0: "5"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4] }
+                },
+                "Major7": {
+                    rootString: 4,
+                    dots: {4: 0, 3: 2, 2: 1, 1: 2, 0: 0},
+                    intervals: {4: "1", 3: "5", 2: "7", 1: "3", 0: "5"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4] }
+                },
+                "7": {
+                    rootString: 4,
+                    dots: {4: 0, 3: 2, 2: 0, 1: 2, 0: 0},
+                    intervals: {4: "1", 3: "5", 2: "♭7", 1: "3", 0: "5"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4] }
+                },
+                "minor": {
+                    rootString: 4,
+                    dots: {4: 0, 3: 2, 2: 2, 1: 1, 0: 0},
+                    intervals: {4: "1", 3: "5", 2: "1", 1: "♭3", 0: "5"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4] }
+                },
+                "minor7": {
+                    rootString: 4,
+                    dots: {4: 0, 3: 2, 2: 0, 1: 1, 0: 0},
+                    intervals: {4: "1", 3: "5", 2: "♭7", 1: "♭3", 0: "5"},
+                    barre: { offset: 0, strings: [0, 1, 2, 3, 4] }
+                }
+            }
+        };
+
+        const chordQualityIntervals = {
+            "Major": ["1", "3", "5"],
+            "Major7": ["1", "3", "5", "7"],
+            "7": ["1", "3", "5", "♭7"],
+            "minor": ["1", "♭3", "5"],
+            "minor7": ["1", "♭3", "5", "♭7"]
+        };
+
+        const chromaticScaleFlats = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        const chordIntervalSemitones = { "1": 0, "♭3": 3, "3": 4, "5": 7, "♭7": 10, "7": 11 };
+
+        function getChordToneNotes(root, quality) {
+            const intervals = chordQualityIntervals[quality] || chordQualityIntervals["Major"];
+            const preferFlats = root.includes("b") || ["F", "Bb", "Eb", "Ab", "Db", "Gb"].includes(root) || quality.includes("minor") || quality === "7";
+            const sourceScale = preferFlats ? chromaticScaleFlats : chromaticScale;
+            const rootIndex = sourceScale.indexOf(root);
+            if (rootIndex < 0) return intervals;
+            return intervals.map(interval => sourceScale[(rootIndex + chordIntervalSemitones[interval]) % 12]);
+        }
+
         // 초기 설정값 업데이트
         let selectedRootOpt = 'C';
         let selectedAccidentalOpt = ''; 
         let selectedScaleOpt = 'Major Scale';
         let selectedFormOpt = 'ALL';
         let selectedTypeOpt = 'SCALE'; 
+        let selectedChordQualityOpt = 'Major';
         let selectedDegreeOpt = 'ALL'; // 추가된 도수 필터 옵션
         let selectedViewOpt = 'INTERVAL'; 
         let isFormHighlighterOn = false; 
@@ -750,6 +847,15 @@
         }
 
         function updateKeyAndNotesDisplay() {
+            if (selectedTypeOpt === "CHORD") {
+                const rootStringLabel = currentForm === "E" ? "6번줄 근음" : "5번줄 근음";
+                const chordTones = getChordToneNotes(currentRoot, selectedChordQualityOpt);
+                keySigDisplayEl.innerText = `${currentRoot} ${selectedChordQualityOpt}`;
+                relativeKeyDisplayEl.innerText = `${currentForm}폼 / ${rootStringLabel}`;
+                notesListDisplayEl.innerText = chordTones.join(" - ");
+                return;
+            }
+
             let baseType = currentScale.includes("Major") ? "Major" : "Minor";
             let keySig = keySigsCorrected[baseType][currentRoot];
             keySigDisplayEl.innerText = keySig ? `${keySig} (${currentRoot} ${baseType})` : "조표 데이터 부족";
@@ -787,35 +893,38 @@
             return intervalName; 
         }
 
+        function setActiveButton(btnClass, value) {
+            document.querySelectorAll(`.${btnClass}`).forEach(b => b.classList.remove('active'));
+            const target = document.querySelector(`.${btnClass}[data-val="${value}"]`);
+            if (target) target.classList.add('active');
+        }
+
         function updateOptionsUI() {
             const chordBtn = document.getElementById('btn-type-chord');
-            const formCBtn = document.querySelector('.form-btn[data-val="C"]');
-            const formGBtn = document.querySelector('.form-btn[data-val="G"]');
+            const chordQualityRow = document.getElementById('row-chord-quality');
+            chordBtn.classList.remove('disabled-btn');
 
-            if (selectedFormOpt === 'ALL') {
-                chordBtn.classList.add('disabled-btn');
-                if (selectedTypeOpt === 'CHORD') {
-                    selectedTypeOpt = 'SCALE';
-                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelector('.type-btn[data-val="SCALE"]').classList.add('active');
-                }
-            } else {
-                chordBtn.classList.remove('disabled-btn');
+            if (chordQualityRow) {
+                chordQualityRow.style.display = selectedTypeOpt === 'CHORD' ? 'flex' : 'none';
             }
 
-            let isMinor = selectedScaleOpt.includes("Minor");
-            if (isMinor && selectedTypeOpt === 'CHORD') {
-                formCBtn.classList.add('disabled-btn');
-                formGBtn.classList.add('disabled-btn');
-                
-                if (selectedFormOpt === 'C' || selectedFormOpt === 'G') {
+            document.querySelectorAll('.form-btn').forEach(btn => {
+                btn.classList.remove('disabled-btn');
+            });
+
+            if (selectedTypeOpt === 'CHORD') {
+                const allowedForms = ['E', 'A'];
+
+                document.querySelectorAll('.form-btn').forEach(btn => {
+                    if (!allowedForms.includes(btn.dataset.val)) {
+                        btn.classList.add('disabled-btn');
+                    }
+                });
+
+                if (!allowedForms.includes(selectedFormOpt)) {
                     selectedFormOpt = 'E';
-                    document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelector('.form-btn[data-val="E"]').classList.add('active');
+                    setActiveButton('form-btn', 'E');
                 }
-            } else {
-                formCBtn.classList.remove('disabled-btn');
-                formGBtn.classList.remove('disabled-btn');
             }
         }
 
@@ -915,6 +1024,7 @@
         setupOptionButtons('type-btn', val => selectedTypeOpt = val);
         setupOptionButtons('degree-btn', val => selectedDegreeOpt = val);
         setupOptionButtons('view-btn', val => selectedViewOpt = val);
+        setupOptionButtons('chord-quality-btn', val => selectedChordQualityOpt = val);
 
         function initFretboard() {
             let headerRow = "<tr><th>줄 \\ 프렛</th>";
@@ -1009,10 +1119,21 @@
         function getActualRoot() {
             let baseRoot = selectedRootOpt;
             let combined = baseRoot + selectedAccidentalOpt;
-            const normalize = {
+            const isChordMinor = selectedTypeOpt === "CHORD" && selectedChordQualityOpt.includes("minor");
+            const isScaleMinor = selectedTypeOpt !== "CHORD" && selectedScaleOpt.includes("Minor");
+            const isMinorContext = isChordMinor || isScaleMinor;
+
+            const normalizeMajorContext = {
                 "B#": "C", "E#": "F", "Cb": "B", "Fb": "E",
-                "D#": "Eb", "A#": "Bb"
+                "D#": "Eb", "A#": "Bb", "G#": "Ab"
             };
+
+            const normalizeMinorContext = {
+                "B#": "C", "E#": "F", "Cb": "B", "Fb": "E",
+                "Db": "C#", "Ab": "G#", "D#": "Eb", "A#": "Bb"
+            };
+
+            const normalize = isMinorContext ? normalizeMinorContext : normalizeMajorContext;
             return normalize[combined] || combined;
         }
 
@@ -1021,8 +1142,29 @@
             let isPentatonic = currentScale.includes("Pentatonic");
             let baseType = currentScale.includes("Major") ? "Major" : "Minor";
             let rootForFretboard = flatToSharp[currentRoot] || currentRoot;
-            
             let activeShapes = isPentatonic ? pentatonicShapes : diatonicShapes;
+
+            if (selectedTypeOpt === "CHORD") {
+                let chordData = movableChordShapes[currentForm]?.[selectedChordQualityOpt];
+                if (!chordData) return;
+
+                let rootStringNotes = stringsNotes[chordData.rootString];
+                for (let f = 0; f <= 24; f++) {
+                    if (rootStringNotes[f] === rootForFretboard) {
+                        let rFret = f;
+                        let minOffset = Math.min(...Object.values(chordData.dots));
+                        let maxOffset = Math.max(...Object.values(chordData.dots));
+
+                        if (rFret + maxOffset <= 24 && rFret + minOffset >= 0) {
+                            for (let s in chordData.dots) {
+                                const id = `${s}-${rFret + chordData.dots[s]}`;
+                                if(!requiredCells.includes(id)) requiredCells.push(id);
+                            }
+                        }
+                    }
+                }
+                return;
+            }
 
             if (currentForm === "ALL") {
                 let rootIndex = chromaticScale.indexOf(rootForFretboard);
@@ -1033,26 +1175,6 @@
                         let diff = (noteIndex - rootIndex + 12) % 12;
                         if (scaleIntervals[currentScale].hasOwnProperty(diff)) {
                             requiredCells.push(`${s}-${f}`);
-                        }
-                    }
-                }
-                return;
-            }
-
-            if (selectedTypeOpt === "CHORD") {
-                let chordData = exactChordShapes[baseType][currentForm];
-                let rootStringNotes = stringsNotes[chordData.rootString];
-                
-                for (let f = 0; f <= 24; f++) {
-                    if (rootStringNotes[f] === rootForFretboard) {
-                        let rFret = f;
-                        let minOffset = Math.min(...Object.values(chordData.dots));
-                        let maxOffset = Math.max(...Object.values(chordData.dots));
-                        
-                        if (rFret + maxOffset <= 24 && rFret + minOffset >= 0) {
-                            for (let s in chordData.dots) {
-                                requiredCells.push(`${s}-${rFret + chordData.dots[s]}`);
-                            }
                         }
                     }
                 }
@@ -1177,13 +1299,15 @@
         }
 
         function drawSingleFormAnswersOnBoard() {
-            let baseType = currentScale.includes("Major") ? "Major" : "Minor";
             let rootForFretboard = flatToSharp[currentRoot] || currentRoot;
             let isPentatonic = currentScale.includes("Pentatonic");
-            
+            let chordData = null;
+            let chordRootFretSet = new Set();
+
             if (selectedTypeOpt === "CHORD") {
-                let chordData = exactChordShapes[baseType][currentForm];
-                
+                chordData = movableChordShapes[currentForm]?.[selectedChordQualityOpt];
+                if (!chordData) return;
+
                 let activeStrings = Object.keys(chordData.dots).map(Number);
                 for (let s = 0; s < 6; s++) {
                     if (!activeStrings.includes(s)) {
@@ -1191,12 +1315,14 @@
                     }
                 }
 
-                if (chordData.barre) {
-                    let rootStringNotes = stringsNotes[chordData.rootString];
-                    for (let f = 0; f <= 24; f++) {
-                        if (rootStringNotes[f] === rootForFretboard) {
+                let rootStringNotes = stringsNotes[chordData.rootString];
+                for (let f = 0; f <= 24; f++) {
+                    if (rootStringNotes[f] === rootForFretboard) {
+                        chordRootFretSet.add(f);
+
+                        if (chordData.barre) {
                             let bFret = f + chordData.barre.offset;
-                            if (bFret > 0 && bFret <= 24) { 
+                            if (bFret > 0 && bFret <= 24) {
                                 chordData.barre.strings.forEach(s => {
                                     let cell = document.querySelector(`td[data-s='${s}'][data-f='${bFret}']`);
                                     if (cell) {
@@ -1218,25 +1344,34 @@
                         let cell = document.querySelector(`td[data-s='${s}'][data-f='${f}']`);
                         let noteMarker = cell.querySelector(".note-marker");
                         let clickedNote = cell.dataset.note;
-                        
-                        let rootIndex = chromaticScale.indexOf(rootForFretboard);
-                        let noteIndex = chromaticScale.indexOf(clickedNote);
-                        let diff = (noteIndex - rootIndex + 12) % 12;
-                        let intervalName = scaleIntervals[currentScale][diff] || clickedNote;
+                        let intervalName;
 
-                        // 선택된 음정 검증 (ALL이거나 숫자가 포함되어 있는지 확인)
+                        if (selectedTypeOpt === "CHORD") {
+                            intervalName = chordData.intervals[s];
+                        } else {
+                            let rootIndex = chromaticScale.indexOf(rootForFretboard);
+                            let noteIndex = chromaticScale.indexOf(clickedNote);
+                            let diff = (noteIndex - rootIndex + 12) % 12;
+                            intervalName = scaleIntervals[currentScale][diff] || clickedNote;
+                        }
+
                         let isMatch = selectedDegreeOpt === "ALL" || intervalName.includes(selectedDegreeOpt);
 
                         if (isMatch) {
                             noteMarker.dataset.interval = intervalName;
-                            noteMarker.innerText = getMarkerText(intervalName);
-                            
+
+                            if (selectedTypeOpt === "CHORD") {
+                                noteMarker.innerText = selectedViewOpt === "INTERVAL" ? intervalName : clickedNote;
+                            } else {
+                                noteMarker.innerText = getMarkerText(intervalName);
+                            }
+
                             if (isPentatonic && selectedTypeOpt !== "CHORD") {
                                 noteMarker.classList.add("all-mode-marker"); 
                             } else {
                                 noteMarker.classList.add("correct-marker"); 
                             }
-                            
+
                             if (intervalName === "1") {
                                 noteMarker.classList.add("root-marker");
                             }
@@ -1382,21 +1517,21 @@
 
         function updateAndShow() {
             clearBoard();
+            updateOptionsUI();
 
             currentRoot = getActualRoot();
-            currentScale = selectedScaleOpt;
             currentForm = selectedFormOpt;
-            
-            if (selectedTypeOpt === "CHORD" && currentScale.includes("Minor") && (currentForm === "C" || currentForm === "G")) {
-                currentScale = currentScale.replace("Minor", "Major");
-            }
+            currentScale = selectedTypeOpt === "CHORD"
+                ? (selectedChordQualityOpt.includes("minor") ? "Minor Scale" : "Major Scale")
+                : selectedScaleOpt;
 
             updateHighlighterBtnUI(); 
 
-            targetNoteEl.innerText = currentForm === "ALL" ? `${currentRoot} ${currentScale}` : `${currentForm}폼의 ${currentRoot} ${currentScale}`;
             if(selectedTypeOpt === "CHORD") {
-                let baseType = currentScale.includes("Major") ? "Major" : "Minor";
-                targetNoteEl.innerText = `${currentForm} ${baseType} Code Shape (${currentRoot})`;
+                let rootStringLabel = currentForm === "E" ? "6번줄 근음" : "5번줄 근음";
+                targetNoteEl.innerText = `${currentRoot} ${selectedChordQualityOpt} - ${currentForm}폼 (${rootStringLabel})`;
+            } else {
+                targetNoteEl.innerText = currentForm === "ALL" ? `${currentRoot} ${currentScale}` : `${currentForm}폼의 ${currentRoot} ${currentScale}`;
             }
 
             updateKeyAndNotesDisplay();
@@ -1405,7 +1540,7 @@
             applyOctaveHighlighter(); 
             applyFormHighlighter();   
 
-            if (currentForm === "ALL") {
+            if (currentForm === "ALL" && selectedTypeOpt !== "CHORD") {
                 drawAllFormsAnswersOnBoard();
                 drawConnectionLines(); 
             } else {
